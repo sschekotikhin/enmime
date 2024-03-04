@@ -82,6 +82,23 @@ func (e *Envelope) SetHeader(name string, value []string) error {
 	return nil
 }
 
+// RawSetHeader sets given header name (without canonicalisation) to the given value.
+// If the header exists already, all existing values are replaced.
+func (e *Envelope) RawSetHeader(name string, value []string) error {
+	if name == "" {
+		return errors.New("provide non-empty header name")
+	}
+
+	for i, v := range value {
+		if i == 0 {
+			(*e.header)[name] = []string{mime.BEncoding.Encode("utf-8", v)}
+			continue
+		}
+		(*e.header)[name] = append((*e.header)[name], mime.BEncoding.Encode("utf-8", v))
+	}
+	return nil
+}
+
 // AddHeader appends given header value to header name without changing existing values.
 // If the header does not exist already, it will be created.
 func (e *Envelope) AddHeader(name string, value string) error {
@@ -100,6 +117,16 @@ func (e *Envelope) DeleteHeader(name string) error {
 	}
 
 	e.header.Del(name)
+	return nil
+}
+
+// DeleteHeader deletes given header.
+func (e *Envelope) RawDeleteHeader(name string) error {
+	if name == "" {
+		return errors.New("provide non-empty header name")
+	}
+
+	delete(*e.header, name)
 	return nil
 }
 
